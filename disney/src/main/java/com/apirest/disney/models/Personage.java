@@ -26,29 +26,38 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 @Table(name = "personajes")
+
 public class Personage {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "personaje_id", unique = true, nullable = false)
 	private Long id;
-	
+
 	@NotBlank
 	private String imagen;
 	@NotBlank
-	@Column (unique = true)
+	@Column(unique = true)
 	private String nombre;
-	
-	@Min (value=1)
+
+	@Min(value = 1)
 	private int edad;
-	
+
 	@NotNull
 	private Double peso;
-	
+
 	@NotBlank
 	private String historia;
 	@ManyToMany(cascade = CascadeType.ALL)
-	@JoinTable(name = "personaje_peliculas",
-			joinColumns = @JoinColumn (name = "FKpersoje_id", nullable = false),
-			inverseJoinColumns= @JoinColumn (name = "FKpelicula_id", nullable = false))
+	@JoinTable(name = "personaje_peliculas", 
+				joinColumns = @JoinColumn(name = "FKpersoje_id", nullable = false), 
+				inverseJoinColumns = @JoinColumn(name = "FKpelicula_id", nullable = false))
 	private List<Movie> movies = new ArrayList<>();
+
+	public void addMovie(Movie movie) {
+		this.movies.add(movie);
+	}
+
+	public void removeMovie(Movie movie) {
+		this.movies.remove(movie);
+	}
 }

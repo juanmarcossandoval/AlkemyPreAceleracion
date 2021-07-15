@@ -1,6 +1,5 @@
 package com.apirest.disney.controllers;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,12 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.apirest.disney.dtos.PersonageDTO;
-import com.apirest.disney.dtos.PersonageDTOSimple;
+import com.apirest.disney.dtos.PersonageDTOCreate;
 import com.apirest.disney.mapper.MarvelModelMapper;
-import com.apirest.disney.services.MovieService;
 import com.apirest.disney.services.PersonageService;
-import com.apirest.disney.models.Movie;
 import com.apirest.disney.models.Personage;
 
 @Controller
@@ -31,126 +27,77 @@ public class PersonageController {
 
 	@Autowired
 	PersonageService personageServ;
-	@Autowired
-	MovieService movieServ;
 
 	@Autowired
 	MarvelModelMapper mmm;
 
-	// LISTADO DETALLES MINIMOS
+	// lista los personajes en la base de datos
 	@GetMapping
-	public ResponseEntity<?> listarPersonajes() {
-		List<Personage> personajes = new ArrayList<>();
-		personajes = personageServ.findAllPersonages();
-		if (personajes.isEmpty()) {
-			return new ResponseEntity<>("No existen personajes", HttpStatus.BAD_REQUEST);
+	public ResponseEntity<?> personageFilters(@RequestParam(name = "name", required = false) Optional<String> name,
+											@RequestParam(name = "age", required = false) Optional<Integer> age,
+											@RequestParam(name = "weight", required = false) Optional<Double> weight,
+											@RequestParam(name = "idMovie", required = false) Optional<Long> idMovie) {
+		if (name.isPresent()) {
+			List<Personage> encontrados = personageServ.findAllByNombre(name.get());
+			return new ResponseEntity<>(mmm.personageListToDTOList(encontrados), HttpStatus.OK);
+		} else if (age.isPresent()) {
+			List<Personage> encontrados = personageServ.findByEdad(age.get());
+			return new ResponseEntity<>(mmm.personageListToDTOList(encontrados), HttpStatus.OK);
+		} else if (weight.isPresent()) {
+			List<Personage> encontrados = personageServ.findAllByPeso(weight.get());
+			return new ResponseEntity<>(mmm.personageListToDTOList(encontrados), HttpStatus.OK);
+		} else if (idMovie.isPresent()) {
+
+			List<Personage> encontrados = personageServ.findAllByMovies(idMovie.get());
+			return new ResponseEntity<>(mmm.personageListToDTOList(encontrados), HttpStatus.OK);
+
 		} else {
-			List<PersonageDTOSimple> dtoper = new ArrayList<>();
-			dtoper = mmm.personajeListToListDTOSimple(personajes);
-			return new ResponseEntity<>(dtoper, HttpStatus.OK);
+			List<Personage> listado = personageServ.findAllPersonages();
+			if (listado.isEmpty()) {
+				return new ResponseEntity<>("No existen personajes", HttpStatus.BAD_REQUEST);
+			} else {
+				return new ResponseEntity<>(mmm.personajeListToListDTOSimple(listado), HttpStatus.OK);
+			}
 		}
 	}
 
-	// CREACION DE PERSONAJE
+	// crea un nuevo personaje
 	@PostMapping
-	public ResponseEntity<?> crearPersonje(@RequestBody PersonageDTO personajeDTO) {
-		Personage encontrado = personageServ.findByName(personajeDTO.getNombre());
-		if (encontrado != null) {
-			return new ResponseEntity<>("El personaje ya existe", HttpStatus.BAD_REQUEST);
-		} else {
-			Personage personajeaux = mmm.DTOToPersonaje(personajeDTO);
-			personajeaux = personageServ.createPersonage(personajeaux);
-			PersonageDTO dtoresp = mmm.personajeToDTO(personajeaux);
-			return new ResponseEntity<>(dtoresp, HttpStatus.CREATED);
-		}
+	public ResponseEntity<?> createPersonge(@RequestBody PersonageDTOCreate personajeDTOC) {
+		Personage personajeAux = mmm.DTOCreateToPersonage(personajeDTOC);
+		personajeAux = personageServ.createPersonage(personajeAux);
+		return new ResponseEntity<>(mmm.personajeToDTO(personajeAux), HttpStatus.CREATED);
 	}
 
-	// ELIMINACION DE UN PERSONAJE POR ID
-	@DeleteMapping(value = "{id}")
-	public ResponseEntity<?> eliminarPersonaje(@PathVariable Long id) {
-		Personage encontrado = personageServ.findById(id);
-		if (encontrado != null) {
-			personageServ.deletePersonage(id);
-			return new ResponseEntity<>("Se elimino con exito el personaje..", HttpStatus.OK);
-		} else {
-			return new ResponseEntity<>("El personaje que desea eliminar no existe..", HttpStatus.BAD_REQUEST);
-		}
+	// elimina un personaje
+	@DeleteMapping(value = "/{idPerso}")
+	public ResponseEntity<?> deletePersonage(@PathVariable Long idPerso) {
+		personageServ.deletePersonage(idPerso);
+		return new ResponseEntity<>("Se elimino con exito el personaje..", HttpStatus.OK);
 	}
 
 	// ACTUALIZACION DE UN PERSONAJE
-	@PutMapping(value = "{id}")
-	public ResponseEntity<?> actualizarPersonaje(@RequestBody PersonageDTO personajeDTO, @PathVariable Long id) {
-		Personage encontrado = personageServ.findById(id);
-		if (encontrado != null) {
-			Personage personajeaux = mmm.DTOToPersonaje(personajeDTO);
-			personajeaux.setId(id);
-			personageServ.updatePersonage(personajeaux);
-			return new ResponseEntity<>(mmm.personajeToDTO(personajeaux), HttpStatus.OK);
+	@PutMapping(value = "/{idPerso}")
+	public ResponseEntity<?> updatePersonage(@RequestBody PersonageDTOCreate personajeDTOC,
+			@PathVariable Long idPerso) {
+		Personage personageAux = mmm.DTOCreateToPersonage(personajeDTOC);
+		personageAux.setId(idPerso);
+		personageAux = personageServ.updatePersonage(personageAux);
+		if (personageAux != null) {
+			return new ResponseEntity<>(mmm.personajeToDTO(personageAux), HttpStatus.OK);
 		} else {
-			return new ResponseEntity<>("El personaje que desea actualizar no existe", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>("No se pudo actualizar el personaje..", HttpStatus.BAD_REQUEST);
 		}
 	}
 
 	// DETALLA UN PERSONAJE POR EL ID
-	@GetMapping(value = "{id}")
-	public ResponseEntity<?> detallarpersonaje(@PathVariable Long id) {
-		Personage encontrado = personageServ.findById(id);
-		if (encontrado != null) {
-			return new ResponseEntity<>(mmm.personajeToDTO(encontrado), HttpStatus.OK);
+	@GetMapping(value = "/{idPerso}")
+	public ResponseEntity<?> personageDetails(@PathVariable Long idPerso) {
+		Personage personageAux = personageServ.findById(idPerso);
+		if (personageAux != null) {
+			return new ResponseEntity<>(mmm.personajeToDTO(personageAux), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>("No se encuentra ese personaje", HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	// RELACIONAR PERSONAJE CON PELICULAS
-	@PostMapping(value = "/{id}/addMovie/{idMovie}")
-	public ResponseEntity<?> agregarpeliculas(@PathVariable Long id, @PathVariable Long idMovie) {
-		Personage personajeaux = personageServ.findById(id);
-		if (personajeaux != null) { /////////////////////////////////////////////////// comprobar que la pelicula
-									/////////////////////////////////////////////////// exista
-			Movie peliculaAux = movieServ.findById(idMovie);
-			if (peliculaAux != null) {
-				List<Movie> personajepeliculas = new ArrayList<>();
-				personajepeliculas = personajeaux.getMovies();
-				Boolean ok = personajepeliculas.contains(peliculaAux);
-				if (ok) {
-					return new ResponseEntity<>("La pelicula que desea agregar ya esta asociada con el personaje",
-							HttpStatus.BAD_REQUEST);
-				} else {
-					personajeaux.getMovies().add(peliculaAux);
-					personageServ.updatePersonage(personajeaux);
-					return new ResponseEntity<>("Pelicula asociada con exito", HttpStatus.OK);
-				}
-			} else {
-				return new ResponseEntity<>("La pelicula que desea asociar no existe", HttpStatus.BAD_REQUEST);
-			}
-
-		} else {
-			return new ResponseEntity<>("El personaje no existe en la BBDD", HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	@GetMapping("/filter")
-	public ResponseEntity<?> filtrarpersonajes(@RequestParam(name = "name", required = false) Optional<String> name,
-			@RequestParam(name = "age", required = false) Optional<Integer> age,
-			@RequestParam(name = "weight", required = false) Optional<Double> weight,
-			@RequestParam(name = "idMovie", required = false) Optional<Long> idMovie) {
-		if (name.isPresent()) {
-			List<Personage> encontrados = personageServ.findAllByNombre(name.get());
-			return new ResponseEntity<>(encontrados, HttpStatus.OK);
-		} else if (age.isPresent()) {
-			List<Personage> encontrados = personageServ.findByEdad(age.get());
-			return new ResponseEntity<>(encontrados, HttpStatus.OK);
-		} else if (weight.isPresent()) {
-			List<Personage> encontrados = personageServ.findAllByPeso(weight.get());
-			return new ResponseEntity<>(encontrados, HttpStatus.OK);
-		} else if (idMovie.isPresent()) {
-
-			List<Personage> encontrados = personageServ.findAllByMovies(idMovie.get());
-			return new ResponseEntity<>(encontrados, HttpStatus.OK);
-
-		} else {
-			return new ResponseEntity<>("lista vacia", HttpStatus.BAD_REQUEST);
 		}
 	}
 

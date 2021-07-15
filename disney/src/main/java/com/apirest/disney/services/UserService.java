@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.apirest.disney.models.User;
 import com.apirest.disney.repositories.UserRepository;
@@ -11,11 +13,15 @@ import com.apirest.disney.repositories.UserRepository;
 @Service
 public class UserService {
 	@Autowired
-	UserRepository userRepo;
+	private UserRepository userRepo;
+
+	@Autowired 
+	private PasswordEncoder encoder;
 	
 	public User createUser(User usuario){
 		usuario.setActive(true);
 		usuario.setRoles("USER");
+		usuario.setPassword(encoder.encode(usuario.getPassword()));
 		return userRepo.save(usuario);
 	}
 	

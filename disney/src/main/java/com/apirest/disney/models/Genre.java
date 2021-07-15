@@ -25,16 +25,24 @@ import lombok.Data;
 
 public class Genre {
 	@Id
-	@GeneratedValue (strategy = GenerationType.IDENTITY)
-	@Column (name = "genero_id", unique = true, nullable = false)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "genero_id", unique = true, nullable = false)
 	private Long id;
-	
+
 	@NotBlank
-	@Column (unique = true)
+	@Column(unique = true)
 	private String nombre;
 	@NotBlank
 	private String imagen;
-	
-	@OneToMany(mappedBy = "genero", cascade = CascadeType.ALL, orphanRemoval = true)
+
+	@OneToMany(mappedBy = "genero", cascade = CascadeType.ALL)
 	private List<Movie> movies = new ArrayList<>();
+
+	public void addMovie(Movie movie) {
+		this.movies.add(movie);
+	}
+
+	public void removeMovie(Movie movie) {
+		this.movies.remove(movie);
+	}
 }

@@ -12,12 +12,8 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.Provider;
 import org.springframework.stereotype.Component;
 
-import com.apirest.disney.dtos.MovieDTO;
-import com.apirest.disney.dtos.MovieDTOSimple;
-import com.apirest.disney.dtos.PersonageDTO;
-import com.apirest.disney.dtos.PersonageDTOSimple;
-import com.apirest.disney.models.Movie;
-import com.apirest.disney.models.Personage;
+import com.apirest.disney.dtos.*;
+import com.apirest.disney.models.*;
 
 @Component
 public class MarvelModelMapper extends ModelMapper {
@@ -62,9 +58,22 @@ public class MarvelModelMapper extends ModelMapper {
 
 		return modelmapper;
 	}
-
+	
+	// -----------------------------METODOS DE MAPPEO PARA------------------------//
+	// -----------------------------------USUARIOS-------------------------------//
+	
+	//mapea la creacion de un usuario
+	public User UserDTOToUser (UserDTOCreate userDTO) {
+		return mmm.map(userDTO, User.class);
+	}
+	
 	// -----------------------------METODOS DE MAPPEO PARA------------------------//
 	// -----------------------------------PELICULAS-------------------------------//
+
+	// mapea la creacion de una pelicula//
+	public Movie DTOCreateToMovie(MovieDTOCreate movieDTO) {
+		return mmm.map(movieDTO, Movie.class);
+	}
 
 	// pelicula a dtoSIMPLE
 	public MovieDTOSimple movieToDTOSimple(Movie peli) {
@@ -77,6 +86,16 @@ public class MarvelModelMapper extends ModelMapper {
 		for (Movie m : peliculas) {
 			MovieDTOSimple dtoaux = new MovieDTOSimple();
 			dtoaux = movieToDTOSimple(m);
+			listadto.add(dtoaux);
+		}
+		return listadto;
+	}
+	
+	public List<MovieDTO> movieListToDTOList(List<Movie> movies) {
+		List<MovieDTO> listadto = new ArrayList<>();
+		for (Movie m : movies) {
+			MovieDTO dtoaux = new MovieDTO();
+			dtoaux = MovieToDto(m);
 			listadto.add(dtoaux);
 		}
 		return listadto;
@@ -95,6 +114,11 @@ public class MarvelModelMapper extends ModelMapper {
 	// -----------------------------METODOS DE MAPPEO PARA------------------------//
 	// -----------------------------------PERSONAJES------------------------------//
 
+	//mapea la creacion de un personaje
+	public Personage DTOCreateToPersonage(PersonageDTOCreate personajeDTOC) {
+		return mmm.map(personajeDTOC, Personage.class);
+	}
+	
 	// personaje a DTO SIMPLE
 	public PersonageDTOSimple personajeToDTOSimple(Personage personaje) {
 		return mmm.map(personaje, PersonageDTOSimple.class);
@@ -121,7 +145,7 @@ public class MarvelModelMapper extends ModelMapper {
 	}
 
 	// lista de personajes a lista de DTO DETALLADOS
-	public List<PersonageDTO> ListToDTOlist(List<Personage> lista) {
+	public List<PersonageDTO> personageListToDTOList(List<Personage> lista) {
 		List<PersonageDTO> listadtos = new ArrayList<>();
 		for (Personage c : lista) {
 			PersonageDTO d = personajeToDTO(c);
@@ -129,4 +153,48 @@ public class MarvelModelMapper extends ModelMapper {
 		}
 		return listadtos;
 	}
+
+	// -----------------------------METODOS DE MAPPEO PARA------------------------//
+	// -----------------------------------GENEROS--------------------------------//
+
+	// convierte un DTO DETALLADO en un genero
+	public Genre genreDTOToGenre (GenreDTO genreDTO) {
+		return mmm.map(genreDTO, Genre.class);
+	}
+	
+	// convierte un DTO SIMPLE en un genero
+	public Genre genreDTOCreateToGenre(GenreDTOCreate genreDTOCreate) {
+		return mmm.map(genreDTOCreate, Genre.class);
+	}
+
+	// convierte un genero en un DTO DETALLADO
+	public GenreDTO genreToDTO(Genre genre) {
+		return mmm.map(genre, GenreDTO.class);
+	}
+
+	// convierte un genero en un DTO SIMPLE
+	public GenreDTOCreate genreToDTOCreate(Genre genre) {
+		return mmm.map(genre, GenreDTOCreate.class);
+	}
+
+	// convierte una lista de generos en una lista de DTO de generos DETALLADOS
+	public List<GenreDTO> genreListToDTOGenre(List<Genre> listado) {
+		List<GenreDTO> listaDTOS = new ArrayList<>();
+		for (Genre g : listado) {
+			GenreDTO gDTO = genreToDTO(g);
+			listaDTOS.add(gDTO);
+		}
+		return listaDTOS;
+	}
+
+	// convierte una lista de generos en una lista de DTO de generos SIMPLE
+	public List<GenreDTOCreate> genreListToDTOCreate(List<Genre> listado) {
+		List<GenreDTOCreate> listaDTOS = new ArrayList<>();
+		for (Genre g : listado) {
+			GenreDTOCreate gDTO = genreToDTOCreate(g);
+			listaDTOS.add(gDTO);
+		}
+		return listaDTOS;
+	}
+
 }

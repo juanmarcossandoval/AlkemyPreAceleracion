@@ -27,31 +27,39 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name= "peliculas")
+@Table(name = "peliculas")
 
 public class Movie {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column (name = "pelicula_id", unique = true, nullable = false)
+	@Column(name = "pelicula_id", unique = true, nullable = false)
 	private Long id;
-	
+
 	@NotBlank
 	private String imagen;
 	@NotBlank
 	@Column(unique = true)
 	private String titulo;
-	
+
 	@NotNull
 	private LocalDate creacion;
-	
-	@Min (value=1)
-	@Max (value=5)
+
+	@Min(value = 1)
+	@Max(value = 5)
 	private int calificacion;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "FKgenero_id", referencedColumnName = "genero_id")
 	private Genre genero;
-	
-	@ManyToMany(mappedBy="movies", cascade= CascadeType.ALL)
+
+	@ManyToMany(mappedBy = "movies", cascade = CascadeType.ALL)
 	private List<Personage> personages = new ArrayList<>();
+
+	public void addPersonage(Personage personage) {
+		this.personages.add(personage);
+	}
+
+	public void removePersonage(Personage personage) {
+		this.personages.remove(personage);
+	}
 }

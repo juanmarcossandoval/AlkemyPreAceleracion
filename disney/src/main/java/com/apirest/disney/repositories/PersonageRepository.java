@@ -11,9 +11,9 @@ import com.apirest.disney.models.Personage;
 
 @Repository
 public interface PersonageRepository extends JpaRepository<Personage,Long>{
-	public Personage findByNombre(String nombre);
-	public List<Personage> findByEdad(Integer edad);
-	public List<Personage> findAllByNombre(String nombre);
-	public List<Personage> findAllByPeso(Double peso);
-	public List<Personage> findAllByMovies(Movie pelicula);
+	Personage findByNombre(String nombre);
+	List<Personage> findByEdad(Integer edad);
+	List<Personage> findAllByNombre(String nombre);
+	List<Personage> findAllByPeso(Double peso);
+	List<Personage> findAllByMovies(Movie pelicula);
 }
